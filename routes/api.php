@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Mail\AccountCreated;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,7 @@ Route::prefix('/v1')->group(function() {
         }
         $data['password']=bcrypt($data['password']);
         $u = User::create($data);
+        Mail::to($u)->queue(new AccountCreated($u));
         return response()->json(['status'=>'ok', 'user'=>$u]);
     });
   });
