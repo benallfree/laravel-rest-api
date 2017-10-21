@@ -13,6 +13,29 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+use App\User;
+
+Route::prefix('/v1')->group(function() {
+  Route::get('/ping', function (Request $request) {
+    return response()->json(['status'=>'ok']);
+  });
+
+  Route::prefix('/account')->group(function() {
+    Route::post('/create', function (Request $request) {
+      $data = $request->input();
+      $v = Validator::make($data, [
+          'username' => 'required|string|max:255|unique:users|regex:/[A-Za-z_\-=]/',
+          'email' => 'required|string|email|max:255',
+          'password' => 'required|string|min:6',
+        ]);
+        if($v->fails())
+        {
+          return response()->json(['status'=>'error', 'errors'=>$v->getMessageBag()]);
+        }
+        $data['password']=bcrypt($data['password']);
+        $u = User::create($data);
+        return response()->json(['status'=>'ok', 'user'=>$u]);
+    });
+  });
+
 });
